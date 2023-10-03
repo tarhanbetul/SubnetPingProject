@@ -1,0 +1,60 @@
+version: '3'
+
+networks:  # Ağları burada tanımlayın
+  mynetwork: # Ağ adını burada belirtin
+
+services:
+  web: 
+    build: .
+    command: /app/venv/bin/python manage.py runserver 0.0.0.0:8000
+    container_name: "web"
+    ports:
+      - "8000:8000"
+      - "5432:5432"
+    depends_on:
+      - db
+      - redis
+      - celery
+    # Diğer Django ayarları burada tanımlanabilir.
+    entrypoint: >
+      sh -c "python -u manage.py makemigrations && python -u manage.py migrate && exec python -u manage.py runserver 0.0.0.0:8000"
+    environment:
+      PYTHONUNBUFFERED: 1 
+      CELERY_BROKER_URL: redis://redis:6379/0
+      CELERY_BACKEND_URL: redis://redis:6379/0
+    # Diğer Django ayarları burada tanımlanabilir.
+    networks:
+      - mynetwork
+
+  db:
+    image: postgres:latest
+    environment:
+      POSTGRES_DB: subnetPing
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 123qwe
+    container_name: "db"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - mynetwork
+
+  redis:
+    image: redis:latest
+    container_name: "redis"
+    ports:
+      - "6379:6379"
+    depends_on:
+      - db
+    networks:
+      - mynetwork
+
+  celery:
+    build: .
+    command: celery -A mycelery worker -l info
+    container_name: "celery"
+    depends_on:
+      - redis
+    networks:
+      - mynetwork
+volumes:
+  postgres_data:
