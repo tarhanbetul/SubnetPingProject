@@ -9,8 +9,6 @@ from celery import shared_task
 def process_subnet_ips(ip_address, is_active):
     try:
         ping_log = PingResult(ip_address=ip_address, is_active=is_active)
-        print("ping_log")
-        print(ping_log)
         ping_log.save()
 
 

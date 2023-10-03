@@ -9,39 +9,26 @@ from subnetPing.tasks import process_subnet_ips_caching
 from django.core.cache import cache
 # from subnetPing import tasks
 
-@api_view(['GET'])
-def hello_world(request):
-    print("Logging test")
-    return Response({"message": "Hello World!"})
-
-
-@cache
 @api_view(['POST'])
 def get_subnet_ips(request):
-    print("geldi mi1")
     try:
         ip_address = request.data.get('ip_address')
         subnet_mask = request.data.get('subnet_mask')
-        print("geldi mi")
+
         network = ipaddress.ip_network(f"{ip_address}/{subnet_mask}", strict=False)
 
         response_result_array = []
         for ip in network.hosts():
             ping_result = ping_and_log(str(ip))
-            print ("tttttttttt")
             response_result_object = {'Subnet Ip': str(ip), 'Ping Result': ping_result.get('is_active', False)}
-            update_ip_status(str(ip), ping_result.get('is_active', False))
+            cache_ip_status(str(ip), ping_result.get('is_active', False))
             response_result_array.append(response_result_object)
 
         return Response({'Response Result': response_result_array})
 
         # Celery görevini başlatın ve parametreleri ile birlikte gönderelim
-
-
         # Görev başarıyla başlatıldı, sonucunu beklemek istersek
         # result = result.get()
-
-        #return Response({'message': 'Görev başlatıldı. Sonucu bekleyin...'})
     except Exception as e:
         return Response({'error': str(e)}, status=500)
 
@@ -67,16 +54,10 @@ def get_ip_version(ip_address):
 
 
 def is_largest_subnet_mask_v6(ip_address_str, subnet_mask_str):
-    print("yyy")
     try:
-        print("3333")
-        print(ip_address_str)
-        print(type(subnet_mask_str))
         # Verilen IPv6 adresini ve subnet maskesini oluşturun
         ip = ipaddress.IPv6Network(f"{ip_address_str}{'/' + subnet_mask_str}", strict=False)
 
-        print("--777-ip--")
-        print(ip)
         # Oluşturulan subnet maskesinin uzunluğunu alın
         subnet_mask_length = ip.prefixlen
         if subnet_mask_length > 64:
@@ -85,13 +66,7 @@ def is_largest_subnet_mask_v6(ip_address_str, subnet_mask_str):
             # En büyük IPv6 subnet maskesi 64 ise True döndürün
             return subnet_mask_length <= 64
     except Exception as e:
-        print(str(e))
         return False
-    # except (ipaddress.AddressValueError, ipaddress.NetmaskValueError):
-    #
-    #     # Geçersiz IPv6 adresi veya subnet maskesi verilmişse False döndürün
-    #     return False
-
 
 def is_largest_subnet_mask_v4(ip_address_str, subnet_mask_str):
     try:
@@ -121,9 +96,7 @@ def validate_subnet_mask4(subnet_mask):
 def validate_subnet_mask6(subnet_mask):
     # Subnet maskesini doğrulama işlemi
     try:
-        print ("sekseksek")
         subnet = ipaddress.IPv6Network("2001:db8::/64", strict=False)
-        print("sekseksek444")
         return True
     except (ipaddress.AddressValueError, ipaddress.NetmaskValueError):
         return False
@@ -131,18 +104,10 @@ def validate_subnet_mask6(subnet_mask):
 
 def ping_and_log(ip_address):
     try:
-        print ("geldimi")
-
         # Ping işlemi
-        print (ip_address)
         result = subprocess.run(['ping', '-c', '1', ip_address], capture_output=True, text=True, timeout=5)
-        print ("ping atti")
-        # Ping sonucuna göre aktiflik durumunu belirlelim
+        # Ping sonucuna göre aktiflik durumunu belirleyelim
         is_active = result.returncode == 0
-        # is_active = True
-        print ("is_active")
-        print(is_active)
-        # print("CELERY_BROKER_URL: ", CELERY_BROKER_URL)
         process_subnet_ips.delay(ip_address, is_active)
 
         return JsonResponse({'message': 'Ping başarılı', 'is_active': is_active})
@@ -150,28 +115,10 @@ def ping_and_log(ip_address):
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
 
-def update_ip_status(ip_address, status):
-    print("************** CACHING ***************")
+def cache_ip_status(ip_address, status):
     key = f'ip_status_{ip_address}'
-    print("KEY: ", key)
-    cache.set(key, status, timeout=None)  # timeout=None, süresiz saklama anlamına gelir
+    cache.set(key, status, timeout=600)  # 10 dk saklanır, timeout=None, süresiz saklama anlamına gelir
     print("************ CACHED *******************")
    # process_subnet_ips_caching.delay(ip_address, status)
     return True
 
-#
-# return_code = result.returncode
-#
-#         if return_code == 0:
-#             print("Ping başarılı")
-#         else:
-#             print("Ping başarısız. Çıkış Kodu:", return_code)
-#
-#         except subprocess.CalledProcessError as e:
-#         print("Hata Oluştu:", e)
-#     except subprocess.TimeoutExpired:
-#         print("İşlem Zaman Aşımına Uğradı")
-#     except FileNotFoundError:
-#         print("Ping komutu bulunamadı")
-#     except Exception as e:
-#         print("Bilinmeyen Bir Hata Oluştu:", e)

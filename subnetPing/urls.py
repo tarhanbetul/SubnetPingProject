@@ -1,5 +1,5 @@
 from django.urls import path
-from . import views  # views dosyanızın adını ve yolu ile değiştirin
+from . import views  
 
 urlpatterns = [
     path('get_subnet_ips/', views.get_subnet_ips, name='get_subnet_ips'),
