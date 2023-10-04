@@ -58,7 +58,7 @@ Celery :5.2.3
 PostgreSQl :16
 
 
-# PROJEYİ BAŞLATMAK İÇİN KOMUYTLAR
+# PROJEYİ BAŞLATMAK İÇİN KOMUTLAR
 
 1) cd C:\Users\numan\OneDrive\Desktop\subnet_project
 2) docker-compose up --build
