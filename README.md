@@ -56,3 +56,29 @@ Django RestFramework :3.13.1
 Django-Redis :5.0.0
 Celery :5.2.3
 PostgreSQl :16
+
+
+# PROJEYİ BAŞLATMAK İÇİN KOMUYTLAR
+
+1) cd C:\Users\numan\OneDrive\Desktop\subnet_project
+2) docker-compose up --build
+
+# REDIS CONTAINERINDA CACHED VERİLERİ GÖRMEK İÇİN KOMUTLAR
+
+1) docker exec -it redis bash
+2) redis-cli -u redis://redis:6379/1
+3) KEYS *                   --> tüm keyleri bul
+4) GET <KEY_NAME>           --> bulduğun keylerden birinin valuesuna bak
+
+# POSTGRE CONTAINERINDA VERİLERİ GÖRMEK İÇİN KOMUTLAR
+
+1) \l                                   --> db leri listele
+2) \c subnetPing                        --> db ye bağlan
+3) \dt                                  --> tabloları listele
+4) SELECT * FROM public."PingResult";   --> verileri listele
+
+# CELERY CONTAINERI KUYRUKLANMIŞ TASKLERİ GÖRMEK İÇİN KOMUTLAR
+
+1) docker exec -it celery sh                   --> celery container'a bağlan
+2) celery -A mycelery inspect registered       --> taskleri bul 
+(NOT : sadece register olmuş taskler görünür kuyruklanmış taskler hızlı işlendiği için anlık kuyruklar görüntülenemiyor)
