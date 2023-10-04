@@ -72,10 +72,11 @@ PostgreSQl :16
 
 # POSTGRE CONTAINERINDA VERİLERİ GÖRMEK İÇİN KOMUTLAR
 
-1) \l                                   --> db leri listele
-2) \c subnetPing                        --> db ye bağlan
-3) \dt                                  --> tabloları listele
-4) SELECT * FROM public."PingResult";   --> verileri listele
+1) docker exec -it db psql -U postgres  --> postgre container'a bağlan
+2) \l                                   --> db leri listele
+3) \c subnetPing                        --> db ye bağlan
+4) \dt                                  --> tabloları listele
+5) SELECT * FROM public."PingResult";   --> verileri listele
 
 # CELERY CONTAINERI KUYRUKLANMIŞ TASKLERİ GÖRMEK İÇİN KOMUTLAR
 
